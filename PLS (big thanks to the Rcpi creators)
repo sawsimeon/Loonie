@@ -13,7 +13,7 @@ x = suppressWarnings(cbind(extractDrugALOGP(x.mol),
                           extractDrugWeight(x.mol),
                           extractDrugWienerNumbers(x.mol),
                           extractDrugZagrebIndex(x.mol)))
-install.packages("caret", "pls ")
+install.packages("caret", "pls")
 require(caret)
 require(pls)
 ctrl = trainControl(method = "repeatedcv", number = 5, repeats = 10,
