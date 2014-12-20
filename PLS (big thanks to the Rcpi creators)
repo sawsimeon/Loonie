@@ -1,0 +1,27 @@
+source("http://bioconductor.org/biocLite.R")
+biocLite("Rcpi")
+library(Rcpi)
+RI.smi = system.file("vignettedata/FDAMDD.smi", package = "Rcpi")
+RI.csv = system.file("vignettedata/RI.csv", package = "Rcpi")
+x.mol = readMolFromSmi(RI.smi, type = "mol")
+x.tab = read.table(RI.csv, sep = '\t', header = TRUE)
+y = x.tab$RI
+x = suppressWarnings(cbind(extractDrugALOGP(x.mol),
+                          extractDrugApol(x.mol),
+                          extractDrugECI(x.mol),
+                          extractDrugTPSA(x.mol),
+                          extractDrugWeight(x.mol),
+                          extractDrugWienerNumbers(x.mol),
+                          extractDrugZagrebIndex(x.mol)))
+install.packages("caret", "pls ")
+require(caret)
+require(pls)
+ctrl = trainControl(method = "repeatedcv", number = 5, repeats = 10,
+                    summaryFunction - defaultSummary)
+set.seed(1002)
+pls.fit = train(x, y, method = "pls", tuneLength = 10, trControl = ctrl,
+                metric = "RMSE", preProc = c('center', 'scale'))
+print(plot(pls.fit, asp = 0.5))
+plot(y, predict(pls,fit, x), xlim = range(y), ylim = range(y),
+     col = '#0080ff', xlab = 'Experimental RIs', ylab = 'Predicted RIs')
+abline(a = 0, b = 1)
