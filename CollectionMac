@@ -1,0 +1,639 @@
+install.packages("RWeka", "caret", "mlbench", "Hmisc", "randomForest", "kernlab", "e1071", "cluster", "FactoMineR", "randomGLM", "corrplot")
+library(RWeka)
+library(caret)
+library(mlbench)
+library(Hmisc)
+library(randomForest)
+library(kernlab)
+library(e1071)
+library(cluster) 
+library(FactoMineR)
+library(randomGLM)
+library(corrplot)
+
+################### Normalization 
+data = read.csv("data.csv", header = TRUE)
+
+scaled.dat <- scale(data[,-ncol(data))])
+
+write.table(scaled.dat,"Ndata.txt", quote = TRUE, sep = "\t")
+
+#################### T-test
+
+data = read.csv("Internal2.csv", header = TRUE)
+
+meanX  <- matrix(nrow = ncol(data), ncol = 1)
+sdX  <- matrix(nrow = ncol(data), ncol = 1)
+meanY  <- matrix(nrow = ncol(data), ncol = 1)
+sdY  <- matrix(nrow = ncol(data), ncol = 1)
+p.value  <- matrix(nrow = ncol(data), ncol = 1)
+m = ncol(data)
+k = m-1
+
+for(i in 1:k){ 
+	X <- subset(data.frame(data[,i],Activity =data[,m]), Activity == 'Active I')
+	Y <- subset(data.frame(data[,i],Activity =data[,m]), Activity == 'Active II')
+	meanX[i,]  = mean(X[,1])
+	sdX[i,]  = sd(X[,1])
+	meanY[i,]  = mean(Y[,1])
+	sdY[i,]  = sd(Y[,1])
+	p.value[i,]  = t.test(X[,1],Y[,1])$ p.value
+}
+
+stat = data.frame (meanX,sdX,meanY,sdY,p.value)
+write.csv(stat, "statistical value of Active.csv", row.names=TRUE, na="")
+
+########### Decision Tree (J48)
+
+data = read.csv("Nurine.csv", header = TRUE)
+
+m1 <- J48(Class ~ ., data = data)
+plot(m1)
+
+########################### Box plot
+########################### Box plot
+par( mfrow = c( 2,2 ),mai=c(0.5,0.5,0.5,0.5))
+
+boxplot(X75.55.22.1074.67~Class,data=data,main='% X75.55.22.1074.67', col = "green")
+
+boxplot(H1.1.1.15~Class,data=data,main='% Arginine',col = "green")
+ 
+boxplot(H1.1.1.3~Class,data=data,main='% Aspartate',col = "green")
+
+boxplot(H1.1.1.1~Class,data=data,main='% X75.55.22.1074.67
+ ',col = "green")
+
+boxplot(H3.3.1.1.10~Class,data=data,main='Geary (Hydrophobicity scales)',col = "green")
+
+boxplot(H3.1.4.1.4~Class,data=data,main='NMB (Free energy of solution in water)',col = "green")
+
+boxplot(H3.1.1.1.28~Class,data=data,main='NMB (Hydrophobicity scales)',col = "green")
+
+boxplot(H4.3.7.3~Class,data=data,main='Solvent accessibility: Intermediate',col = "green")
+
+
+
+boxplot(H3.3.1.1.10~Class,data=data,main='Geary (Hydrophobicity scales)',col = "green")
+
+boxplot(H3.1.4.1.4~Class,data=data,main='NMB (Free energy of solution in water)',col = "green")
+
+boxplot(H3.1.1.1.28~Class,data=data,main='NMB (Hydrophobicity scales)',col = "green")
+
+########################### Principle Component (PCA)
+
+data = read.csv("CS_Des_TypeB.csv", header = TRUE)
+
+res.pca <- PCA(data[,-1])
+
+write.table(res.pca$ind$coord, "PCA_ind - CS_Des_TypeB.txt", quote = TRUE, sep = "\t")
+write.table(res.pca$var$coord, "PCA_var - CS_Des_TypeB.txt", quote = TRUE, sep = "\t")
+write.table(res.pca$eig, "PCA_eig - CS_Des_TypeB.txt", quote = TRUE, sep = "\t")
+
+res.pca$eig
+
+###
+res.pca$eig
+res.pca$ind
+res.pca$var
+###
+
+########### Hierarchical Agglomerative
+n = ncol(data)
+x <- data[,-n]
+y <- data[,n]
+
+d <- dist(x, method = "euclidean") # distance matrix
+fit <- hclust(d, method="ward") 
+plot(fit) # display dendogram
+groups <- cutree(fit, k=4) # cut tree into n clusters
+# draw dendogram with red borders around the n  5 clusters 
+rect.hclust(fit, k=2, border="red")
+
+library(pvclust)
+fit <- pvclust(x, method.hclust="ward",
+   method.dist="euclidean")
+plot(fit) # dendogram with p values
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+
+################# Plotting Cluster Solutions
+data = read.csv("tr top13.csv", header = TRUE)
+
+n = ncol(data)
+x <- data[,-1] 
+y <- data[,1]
+
+fit <- kmeans(x, 2)
+
+clusplot(data, y, color=TRUE, shade=TRUE, labels=2, lines=0)
+
+
+n <- nrow(data)
+m <- ncol(data) 
+active <- c(1:1973) 
+outlier <- 1974:n
+
+pch <- rep("+", n)
+pch[outlier] <- "-"
+col <- rep("red", n)
+
+col[outlier] <- "blue"
+pairs(data[,1:4], pch=pch, col=col)
+
+
+################# Plotting Cluster Solutions
+
+tune(svm, Class ~ ., data = data, ranges = list(gamma = 2^(-4:4), cost = 2^(-4:4)), 
+control = tune.control(sampling = "fix"))
+
+data = read.csv("Nurine.csv", header = TRUE)
+
+rbf <- rbfdot(sigma = 0.01)
+Mksvm <- ksvm(Class ~ ., data = data,type="C-svc",kernel="rbfdot",prob.model=TRUE)
+
+str(Mksvm)
+plot(Mksvm)
+
+
+kpc <- kpca(~.,data=data[,-ncol(data)],kernel="rbfdot", features=2)
+rbf <- rbfdot(sigma=0.1)
+x <- pcv(kpc)
+y <- matrix(c(rep(1,104),rep(-1,5)))
+
+svp <- ksvm(data[,-ncol(data)],y,type="C-svc",kernel="rbfdot",C = 1, nu = 0.2, epsilon = 0.1, cross=5, prob.model=TRUE)
+plot(svp,data=x)
+ 
+########### Recursive Feature Elimination via caret for classification
+
+n = ncol(data)
+x <- data[,-1]
+y <- data[,1]
+
+subsets <- c(1:n)
+set.seed(10)
+		   
+ctrl <- rfeControl(functions = rfFuncs,method = "repeatedcv",repeats = 10,verbose = FALSE)
+lmProfile <- rfe(x, y, sizes = subsets,rfeControl = ctrl)
+lmProfile
+predictors(lmProfile)
+
+#################### Random Forest 
+
+RF<- randomForest(Class ~ ., data = data, ntree=10, mtry=5,importance=TRUE)
+
+importance(RF)
+varImpPlot(RF)
+
+write.table(importance(RF),"HIV_importance_G4.txt", quote = TRUE, sep = "\t")
+
+
+########### Random General Linear Model Prediction
+n = ncol(data)
+
+xTrain = data[,-n]
+yTrain = data[,n]
+
+RGLM = randomGLM(xTrain, yTrain, nCandidateCovariates=ncol(xTrain), nBags=100, keepModels = TRUE, nThreads = 1,maxInteractionOrder = 1)
+
+RGLM$timesSelectedByForwardRegression
+RGLM$featuresInForwardRegression
+
+################# Sampling Data
+setwd('/Users/Nuttapat/Desktop/R files')
+
+
+data = read.csv("set3.csv", header = TRUE)
+id <- rbind(data[,,1])
+index <- data.frame(rbind(data[,,1]))
+
+sample <- c(sample(1:52,8),sample(53:nrow(data),5))
+
+#52 = number of last row for class 1, 53 to the end is for class 2. number 8 and 5 is number of separated test set.
+
+write.csv(id[sample,], "test set3.csv", row.names=FALSE, na="")
+write.csv(id[-sample,], "train set3.csv", row.names=FALSE, na="")
+
+
+
+setwd('D:\\Data for R\\Other works\\Natural Product Review Article')
+library(RWeka)
+library(caret)
+library(mlbench)
+library(Hmisc)
+library(randomForest)
+library(kernlab)
+library(e1071)
+library(cluster) 
+library(FactoMineR)
+library(randomGLM)
+library(corrplot)
+
+################### Normalization 
+data = read.csv("Internal2.csv", header = TRUE)
+
+meanX  <- matrix(nrow = ncol(data), ncol = 1)
+sdX  <- matrix(nrow = ncol(data), ncol = 1)
+meanY  <- matrix(nrow = ncol(data), ncol = 1)
+sdY  <- matrix(nrow = ncol(data), ncol = 1)
+p.value  <- matrix(nrow = ncol(data), ncol = 1)
+m = ncol(data)
+k = m-1
+
+for(i in 1:k){ 
+	X <- subset(data.frame(data[,i],Activity =data[,m]), Activity == 'Active I')
+	Y <- subset(data.frame(data[,i],Activity =data[,m]), Activity == 'Active II')
+	meanX[i,]  = mean(X[,1])
+	sdX[i,]  = sd(X[,1])
+	meanY[i,]  = mean(Y[,1])
+	sdY[i,]  = sd(Y[,1])
+	p.value[i,]  = t.test(X[,1],Y[,1])$ p.value
+}
+
+stat = data.frame (meanX,sdX,meanY,sdY,p.value)
+write.csv(stat, "statistical value of Active.csv", row.names=TRUE, na="")
+
+X <- subset(data,Activity == 'Active I')
+Y <- subset(data,Activity == 'Active II')
+
+write.csv(summary(X), "statistical value of Active I.csv", row.names=TRUE, na="")
+write.csv(summary(Y), "statistical value of Active II.csv", row.names=TRUE, na="")
+
+res.pca <- PCA(Y[,-ncol(data)])
+res.pca$var$coord
+res.pca$var$contrib
+
+write.csv(res.pca$eig, "Eig DPP4_active II new.csv", row.names=FALSE, na="")
+
+########################### Principle Component (PCA)
+
+data = read.csv("Aromatase.csv", header = TRUE)
+data = data[,1:14]
+X <- subset(data, Activity == 'Active')
+Y <- subset(data, Activity == 'Inactive')
+
+res.pca <- PCA(Y[,-1])
+
+write.csv(res.pca$eig, "Eig Aro inactive.csv", row.names=FALSE, na="")
+write.csv(res.pca$var$coord, "Loading Aro inactive.csv", row.names=FALSE, na="")
+write.csv(res.pca$ind$coord, "Score Aro inactive.csv", row.names=FALSE, na="")
+
+
+########### Decision Tree (J48)
+setwd('D:\\Data for R\\DPP4\\DPP4 Chemical Space Manuscript_7 07 2014')
+
+data = read.csv("DPP4 active and inactive.csv", header = TRUE)
+
+
+m1 <- J48(Activity ~ ., data = data)
+plot(m1)
+
+########### correlation
+
+x = scale(data[,-1])
+x = data[1:1788, m]
+y  = data[2076:n, m]
+
+cor_jnk=cor(x [2076:n,], use="complete.obs")
+
+corrplot(cor_jnk, order="original", method="square",tl.pos="lt", type="full",        
+tl.col="black", tl.cex=0.7, tl.srt=45, col = colorRampPalette(c("blue","white","red"))(50),
+         addCoef.col="black", addCoefasPercent = FALSE,
+        , sig.level=0.7, insig = "blank")  
+
+##############################################
+
+heatmap.2(as.matrix(x), col=bluered(50), key=T, keysize=1,density.info="none",labRow=NA, margins = c(7, 8),tracecol="green")
+
+
+########################### Box plot
+########################### Box plot
+
+par( mfrow = c(4,2 ),mai=c(0.35,0.35,0.2,0.2))
+
+boxplot(MW ~ Class,data=data,main='MW', col = "green",horizontal=FALSE)
+boxplot(RBN ~ Class,data=data,main='RBN', col = "green",horizontal=FALSE)
+boxplot(nCIC ~ Class,data=data,main='nCIC', col = "green",horizontal=FALSE)
+boxplot(nHDon ~Class,data=data,main='nHDon', col = "green",horizontal=FALSE)
+boxplot(nHAcc ~Class,data=data,main='nHAcc', col = "green",horizontal=FALSE)
+boxplot(ALOGP ~ Class,data=data,main='ALOGP', col = "green",horizontal=FALSE)
+boxplot(TPSA.Tot. ~ Class,data=data,main='TPSA(Tot)', col = "green",horizontal=FALSE)
+boxplot(Qm ~ Class,data=data,main='Qm', col = "green",horizontal=FALSE)
+
+par( mfrow = c(4,2 ),mai=c(0.35,0.35,0.2,0.2))
+boxplot(Energy ~Class,data=data,main='Energy', col = "green",horizontal=TRUE)
+boxplot(Dipole ~Class,data=data,main='Dipole', col = "green",horizontal=TRUE)
+boxplot(HOMO ~ Class,data=data,main='HOMO', col = "green",horizontal=TRUE)
+boxplot(LUMO ~ Class,data=data,main='LUMO', col = "green",horizontal=TRUE)
+boxplot(HOMO-LUMO ~ Class,data=data,main='HOMO-LUMO', col = "green",horizontal=TRUE)
+
+
+
+data = read.csv("DPP4 active analysis.csv", header = TRUE)
+
+summary(data[1:1788,-1])
+summary(data[1789:nrow(data),-1])
+write.csv(summary(data[1:1788,-1]), "summary active1.csv", row.names=FALSE, na="")
+write.csv(summary(data[1789:nrow(data),-1]), "summary active2.csv", row.names=FALSE, na="")
+
+data = read.csv("DPP4.csv", header = TRUE)
+
+m=5
+x = data[1:1786, m]
+y  = data[1787:nrow(data), m]
+t.test(x,y)
+
+########################### Histograms
+n <- nrow(data)
+
+layout(matrix(c(1,2,3,4,5,6,7,8,9,10,0,11,12,13,0), 3,5, byrow = TRUE))
+
+par( mfrow = c(5,3 ),mai=c(0.3,0.3,0.15,0.15))
+
+hist(data[2076:n,2],xlab="MW",main="a",col="blue",breaks=40) 
+hist(data[2076:n,3],xlab="RBN",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,4],xlab="nCIC",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,5],xlab="nHDon",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,6],xlab="nHAcc",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,7],xlab="ALOGP",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,8],xlab="TPSA(Tot)",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,9],xlab="Qm",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,10],xlab="Energy",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,11],xlab="Dipole",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,12],xlab="HOMO",main=NULL,col="blue",breaks=20) 
+hist(data[2076:n,13],xlab="LUMO",main=NULL,col="blue",breaks=20) 
+plot.new()
+hist(data[2076:n,14],xlab="HOMO-LUMO",main=NULL,col="blue",breaks=20) 
+
+
+par( mfrow = c(5,3 ),mai=c(0.35,0.35,0.2,0.3))
+
+hist(data[1:1788,2],xlab=NULL,main="MW",col="blue",breaks=20) 
+hist(data[1:1788,3],xlab=NULL,main="RBN",col="blue",breaks=20) 
+hist(data[1:1788,4],xlab=NULL,main="nCIC",col="blue",breaks=20) 
+hist(data[1:1788,5],xlab=NULL,main="nHDon",col="blue",breaks=20) 
+hist(data[1:1788,6],xlab=NULL,main="nHAcc",col="blue",breaks=20) 
+hist(data[1:1788,7],xlab=NULL,main="ALOGP",col="blue",breaks=20) 
+hist(data[1:1788,8],xlab=NULL,main="TPSA(Tot)",col="blue",breaks=20) 
+hist(data[1:1788,9],xlab=NULL,main="Qm",col="blue",breaks=20) 
+hist(data[1:1788,10],xlab=NULL,main="Energy",col="blue",breaks=20) 
+hist(data[1:1788,11],xlab=NULL,main="Dipole",col="blue",breaks=20) 
+hist(data[1:1788,12],xlab=NULL,main="HOMO",col="blue",,breaks=20) 
+hist(data[1:1788,13],xlab=NULL,main="LUMO",col="blue",breaks=20) 
+plot.new()
+hist(data[1:1788,14],xlab=NULL,main="HOMO-LUMO",col="blue",breaks=20) 
+
+
+par( mfrow = c(5,3 ),mai=c(0.35,0.35,0.2,0.3))
+
+hist(data[1789:2075,2],xlab=NULL,main="MW",col="blue",breaks=20) 
+hist(data[1789:2075,3],xlab=NULL,main="RBN",col="blue",breaks=20) 
+hist(data[1789:2075,4],xlab=NULL,main="nCIC",col="blue",breaks=20) 
+hist(data[1789:2075,5],xlab=NULL,main="nHDon",col="blue",breaks=20) 
+hist(data[1789:2075,6],xlab=NULL,main="nHAcc",col="blue",breaks=20) 
+hist(data[1789:2075,7],xlab=NULL,main="ALOGP",col="blue",breaks=20) 
+hist(data[1789:2075,8],xlab=NULL,main="TPSA(Tot)",col="blue",breaks=20) 
+hist(data[1789:2075,9],xlab=NULL,main="Qm",col="blue",breaks=20) 
+hist(data[1789:2075,10],xlab=NULL,main="Energy",col="blue",breaks=20) 
+hist(data[1789:2075,11],xlab=NULL,main="Dipole",col="blue",breaks=20) 
+hist(data[1789:2075,12],xlab=NULL,main="HOMO",col="blue",,breaks=20) 
+hist(data[1789:2075,13],xlab=NULL,main="LUMO",col="blue",breaks=20) 
+plot.new()
+hist(data[1789:2075,14],xlab=NULL,main="HOMO-LUMO",col="blue",breaks=20) 
+
+x = data[1:1786,n]
+y = data[1787:nrow(data),n] 
+
+########################### Histograms
+
+data = read.csv("t-test active.csv", header = TRUE)
+
+par( mfrow = c(5,3 ),mai=c(0.3,0.3,0.15,0.15))
+hist(data[1:1786,1],main="MW",xlab=NULL,col=rgb(1,0,0,0.7),breaks=20) 
+hist(data[1787:nrow(data),1], add=T,col=rgb(0,0,1,0.4),breaks=20)
+hist(data[1:1786,2],xlab=NULL,main="RBN",col=rgb(1,0,0,0.7),breaks=20,ylim=c(0,450)) 
+hist(data[1787:nrow(data),2], add=T,col=rgb(0,0,1,0.4),breaks=20,ylim=c(0,450))
+hist(data[1:1786,3],xlab=NULL,main="nCIC",col=rgb(1,0,0,0.7),breaks=5) 
+hist(data[1787:nrow(data),3], add=T,col=rgb(0,0,1,0.4),breaks=5)
+hist(data[1:1786,4],xlab=NULL,main="nHDon",col=rgb(1,0,0,0.7),breaks=20) 
+hist(data[1787:nrow(data),4], add=T,col=rgb(0,0,1,0.4),breaks=10)
+hist(data[1:1786,5],xlab=NULL,main="nHAcc",col=rgb(1,0,0,0.7),breaks=50) 
+hist(data[1787:nrow(data),5], add=T,col=rgb(0,0,1,0.4),breaks=20)
+hist(data[1:1786,6],xlab=NULL,main="ALogP",col=rgb(1,0,0,0.7),breaks=25,ylim=c(0,300)) 
+hist(data[1787:nrow(data),6], add=T,col=rgb(0,0,1,0.4),breaks=25,ylim=c(0,300))
+hist(data[1:1786,7],xlab=NULL,main="TPSA",col=rgb(1,0,0,0.7),breaks=25) 
+hist(data[1787:nrow(data),7], add=T,col=rgb(0,0,1,0.4),breaks=25)
+hist(data[1:1786,8],xlab=NULL,main="Qm",col=rgb(1,0,0,0.7),breaks=25) 
+hist(data[1787:nrow(data),8], add=T,col=rgb(0,0,1,0.4),breaks=25)
+hist(data[1:1786,9],xlab=NULL,main="Energy",col=rgb(1,0,0,0.7),breaks=20,ylim=c(0,300)) 
+hist(data[1787:nrow(data),9], add=T,col=rgb(0,0,1,0.4),breaks=20,ylim=c(0,300))
+hist(data[1:1786,10],xlab=NULL,main="Dipole moment",col=rgb(1,0,0,0.7),breaks=20,ylim=c(0,200)) 
+hist(data[1787:nrow(data),10], add=T,col=rgb(0,0,1,0.4),breaks=1000)
+hist(data[1:1786,11],xlab=NULL,main="HOMO",col=rgb(1,0,0,0.7),breaks=25,ylim=c(0,250)) 
+hist(data[1787:nrow(data),11], add=T,col=rgb(0,0,1,0.4),breaks=25,ylim=c(0,250))
+hist(data[1:1786,12],xlab=NULL,main="LUMO",col=rgb(1,0,0,0.7),breaks=20) 
+hist(data[1787:nrow(data),12], add=T,col=rgb(0,0,1,0.4),breaks=20)
+plot.new()
+hist(data[1:1786,13],xlab=NULL,main="HOMO-LUMO",col=rgb(1,0,0,0.7),breaks=20,ylim=c(0,200)) 
+hist(data[1787:nrow(data),13], add=T,col=rgb(0,0,1,0.4),breaks=50,ylim=c(0,200))
+
+
+data = read.csv("DPP4.csv", header = TRUE)
+
+par( mfrow = c(5,3 ),mai=c(0.3,0.3,0.15,0.15))
+hist(data[1:2075,1],xlab=NULL,main="MW",col=rgb(1,0,0,0.5),breaks=20) 
+hist(data[2076:nrow(data),1],add=T,col=rgb(0,0,1,0.5),breaks=20)
+hist(data[1:2075,2],xlab=NULL,main="RBN",col=rgb(1,0,0,0.5),breaks=20,ylim=c(0,450)) 
+hist(data[2076:nrow(data),2], add=T,col=rgb(0,0,1,0.5),breaks=20,ylim=c(0,450))
+hist(data[1:2075,3],xlab=NULL,main="nCIC",col=rgb(1,0,0,0.5),breaks=5) 
+hist(data[2076:nrow(data),3], add=T,col=rgb(0,0,1,0.5),breaks=5)
+hist(data[1:2075,4],xlab=NULL,main="nHDon",col=rgb(1,0,0,0.5),breaks=10) 
+hist(data[2076:nrow(data),4], add=T,col=rgb(0,0,1,0.5),breaks=10)
+hist(data[1:2075,5],xlab=NULL,main="nHAcc",col=rgb(1,0,0,0.5),breaks=20) 
+hist(data[2076:nrow(data),5], add=T,col=rgb(0,0,1,0.5),breaks=20)
+hist(data[1:2075,6],xlab=NULL,main="ALogP",col=rgb(1,0,0,0.5),breaks=30,ylim=c(0,280)) 
+hist(data[2076:nrow(data),6], add=T,col=rgb(0,0,1,0.5),breaks=30,ylim=c(0,280))
+hist(data[1:2075,7],xlab=NULL,main="TPSA",col=rgb(1,0,0,0.5),breaks=30,ylim=c(0,400)) 
+hist(data[2076:nrow(data),7], add=T,col=rgb(0,0,1,0.5),breaks=30,ylim=c(0,400))
+hist(data[1:2075,8],xlab=NULL,main="Qm",col=rgb(1,0,0,0.5),breaks=20,ylim=c(0,800)) 
+hist(data[2076:nrow(data),8], add=T,col=rgb(0,0,1,0.5),breaks=20,ylim=c(0,600))
+hist(data[1:2075,9],xlab=NULL,main="Energy",col=rgb(1,0,0,0.5),breaks=40) 
+hist(data[2076:nrow(data),9], add=T,col=rgb(0,0,1,0.5),breaks=40)
+hist(data[1:2075,10],xlab=NULL,main="Dipole moment",col=rgb(1,0,0,0.5),breaks=50,ylim=c(0,1200)) 
+hist(data[2076:nrow(data),10], add=T,col=rgb(0,0,1,0.5),breaks=50,ylim=c(0,1200))
+hist(data[1:2075,11],xlab=NULL,main="HOMO",col=rgb(1,0,0,0.5),breaks=30,ylim=c(0,450)) 
+hist(data[2076:nrow(data),11], add=T,col=rgb(0,0,1,0.5),breaks=30,ylim=c(0,250))
+hist(data[1:2075,12],xlab=NULL,main="LUMO",col=rgb(1,0,0,0.5),breaks=50) 
+hist(data[2076:nrow(data),12], add=T,col=rgb(0,0,1,0.5),breaks=50)
+plot.new()
+hist(data[1:2075,13],xlab=NULL,main="HOMO-LUMO",col=rgb(1,0,0,0.5),breaks=30,xlim=c(0.2,0.45),ylim=c(0,250)) 
+hist(data[2076:nrow(data),13], add=T,col=rgb(0,0,1,0.5),breaks=30,xlim=c(0.2,0.45))
+
+
+########################### Principle Component (PCA)
+
+data = read.csv("t-test active.csv", header = TRUE)
+
+
+res.pca <- PCA(data[,4:16])
+
+res.pca <- PCA(data[1:1786,-14])
+
+write.csv(res.pca$eig, "Eig DPP4_active II.csv", row.names=FALSE, na="")
+
+write.csv(res.pca$var$coord, "DPP4 loading variable_active II.csv", row.names=FALSE, na="")
+
+write.csv(res.pca$ind$coord, "DPP4 score_active II.csv", row.names=FALSE, na="")
+
+write.csv(res.pca$var$contrib, "DPP4 contri_active II.csv", row.names=FALSE, na="")
+
+########################### PCA loading plot 
+
+PCA = read.csv("DPP4 loading variable_active II.csv", header = TRUE)
+
+namebank<-PCA[[1]]
+
+plot(PCA[[2]], PCA[[3]], 
+     main= NULL,
+     xlab= ".",
+     ylab= ".",
+     , xlim=c(-1, 1), ylim=c(-1, 1), col="black",pch=19 )
+abline(h=0)
+abline(v=0)
+
+text(PCA[[2]], PCA[[3]], labels=namebank, cex= 1.1)
+
+
+
+PCA = read.csv("DPP4 score_active trace back.csv", header = TRUE)
+
+plot(PCA[[3]], PCA[[4]], 
+     main= NULL,
+     xlab= ".",
+     ylab= ".",
+     ,pch=19, xlim=c(-10, 10), ylim=c(-10, 10), col=ifelse(PCA[[8]]> 1,"red","black"))
+abline(h=0)
+abline(v=0)
+
+text(PCA[[3]], PCA[[4]], labels=PCA[[1]], cex= 0.8)
+
+namebank<-PCA[[7]]
+
+plot(PCA[[1]], PCA[[2]], 
+     main= "PCA loading plot (DPP4 inactive class)",
+     xlab= "PC1(36.06%)",
+     ylab= "PC2(15.57%)",
+     pch=NULL, lwd = NULL, xlim=c(-10, 10), ylim=c(-10, 10),col=ifelse(PCA[[6]]> 3,"red","black"))
+abline(h=0)
+abline(v=0)
+
+text(PCA[[1]], PCA[[2]], labels=namebank, cex= 0.8)
+
+
+
+########### Hierarchical Agglomerative
+n = ncol(data)
+x <- data[,-n]
+y <- data[,n]
+
+data = read.csv("DPP4 score_active trace back.csv", header = TRUE)
+
+d <- dist(data[,3:7], method = "euclidean") # distance matrix
+fit <- hclust(d, method="ward") 
+plot(fit) # display dendogram
+groups <- cutree(fit, k=2) # cut tree into n clusters
+# draw dendogram with red borders around the n  5 clusters 
+rect.hclust(fit, k=2, border="red")
+
+write.csv(groups, "DPP4 active groups5.csv", row.names=FALSE, na="")
+
+
+library(pvclust)
+fit <- pvclust(x, method.hclust="ward",
+   method.dist="euclidean")
+plot(fit) # dendogram with p values
+# add rectangles around groups highly supported by the data
+pvrect(fit, alpha=.95)
+
+################# Plotting Cluster Solutions
+data = read.csv("tr top13.csv", header = TRUE)
+
+n = ncol(data)
+x <- data[,-1] 
+y <- data[,1]
+
+fit <- kmeans(x, 2)
+
+clusplot(data, y, color=TRUE, shade=TRUE, labels=2, lines=0)
+
+
+n <- nrow(data)
+m <- ncol(data) 
+active <- c(1:1788) 
+outlier <- 2076:n
+
+pch <- rep("+", n)
+pch[outlier] <- "-"
+col <- rep("red", n)
+
+col[outlier] <- "blue"
+pairs(data[,1:4], pch=pch, col=col)
+
+
+#################### T-test
+data = read.csv("t-test active.csv", header = TRUE)
+
+n = 17
+x = data[1:1786,n]
+y = data[1787:nrow(data),n] 
+t.test(x,y)
+
+write.csv(summary(data[1:1786,4:16]), "summary active I.csv", row.names=FALSE, na="")
+write.csv(summary(data[1787:nrow(data),4:16]), "summary active 2.csv", row.names=FALSE, na="")
+
+#################### Label points in this scatterplot
+
+score_active = read.csv("DPP4 score_active trace back.csv", header = TRUE)
+loading_active = read.csv("DPP4 loading variable_active.csv", header = TRUE)
+score_inactive = read.csv("DPP4 score_inactive.csv", header = TRUE)
+loading_inactive = read.csv("DPP4 loading variable_inactive.csv", header = TRUE)
+
+
+par( mfrow = c(2,2 ),mai=c(0.4,0.4,0.3,0.3))
+
+plot(score_active[,3], score_active[,4], main= NULL, xlab= "PC1",ylab= "PC2", pch=19,  xlim=c(-10, 10), ylim=c(-10, 10),
+col=ifelse(score_active[8]> 1,"red","blue"))
+
+plot(loading_active[,2], loading_active[,3], main= NULL, xlab= "PC1",ylab= "PC2", col= "blue",pch=19, xlim=c(-1, 1), ylim=c(-1, 1))
+text(loading_active[,2], loading_active[,3], labels= loading_active[,1], cex= 0.8,pos=3)
+abline(h=0)
+abline(v=0)
+
+plot(score_inactive[,1], score_inactive[,2], main= NULL, xlab= "PC1",ylab= "PC2", col= "blue", pch=19, xlim=c(-10, 10), ylim=c(-10, 10))
+
+plot(loading_inactive[,2], loading_inactive[,3], main= NULL, xlab= "PC1",ylab= "PC2", col= "blue", pch=19, xlim=c(-1, 1), ylim=c(-1, 1))
+text(loading_inactive[,2], loading_inactive[,3], labels=loading_inactive[,1], cex= 0.8,pos=3)
+abline(h=0)
+abline(v=0)
+
+
+
+score_active = read.csv("DPP4 score_active I.csv", header = TRUE)
+loading_active = read.csv("DPP4 loading variable_active I.csv", header = TRUE)
+score_inactive = read.csv("DPP4 score_active II.csv", header = TRUE)
+loading_inactive = read.csv("DPP4 loading variable_active II.csv", header = TRUE)
+
+par( mfrow = c(2,2 ),mai=c(0.4,0.4,0.3,0.3))
+
+plot(score_active[,1], score_active[,2], main= NULL, xlab= "PC1",ylab= "PC2", col= "blue", pch=19, xlim=c(-10, 10), ylim=c(-10, 10))
+
+plot(loading_active[,2], loading_active[,3], main= NULL, xlab= "PC1",ylab= "PC2", col= "black",pch=19, xlim=c(-1, 1), ylim=c(-1, 1))
+text(loading_active[,2], loading_active[,3], labels= loading_active[,1], cex= 0.8,pos=3)
+abline(h=0)
+abline(v=0)
+
+plot(score_inactive[,1], score_inactive[,2], main= NULL, xlab= "PC1",ylab= "PC2", col= "blue", pch=19, xlim=c(-10, 10), ylim=c(-10, 10))
+
+plot(loading_inactive[,2], loading_inactive[,3], main= NULL, xlab= "PC1",ylab= "PC2", col= "black", pch=19, xlim=c(-1, 1), ylim=c(-1, 1))
+text(loading_inactive[,2], loading_inactive[,3], labels=loading_inactive[,1], cex= 0.8,pos=3)
+abline(h=0)
+abline(v=0)
