@@ -17,7 +17,7 @@ install.packages("caret", "pls")
 require(caret)
 require(pls)
 ctrl = trainControl(method = "repeatedcv", number = 5, repeats = 10,
-                    summaryFunction - defaultSummary)
+                    summaryFunction = defaultSummary)
 set.seed(1002)
 pls.fit = train(x, y, method = "pls", tuneLength = 10, trControl = ctrl,
                 metric = "RMSE", preProc = c('center', 'scale'))
